@@ -1,0 +1,38 @@
+name: Python CI
+
+on:
+  push:
+    branches:
+      - main # Change to your main branch name
+  pull_request:
+    branches:
+      - main # Change to your main branch name
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run tests
+        run: |
+          pytest --junitxml=junit/test-results.xml
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: junit/test-results.xml # Change to the path where pytest generates its XML report
+        if: ${{ always() }}
