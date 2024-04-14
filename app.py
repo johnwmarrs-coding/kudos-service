@@ -7,9 +7,12 @@ from prometheus_flask_exporter import PrometheusMetrics
 app = Flask(__name__)
 metrics = PrometheusMetrics(app)
 
-if os.environ.get('ENV') == 'production':
-    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://username:password@hostname/database_name'
+if 'DB_CONNECTION_STRING' in os.environ:
+    # Run in production
+    DB_CONNECTION_STRING = os.environ.get('DB_CONNECTION_STRING')
+    SQLALCHEMY_DATABASE_URI = DB_CONNECTION_STRING
 else:
+    # Run in dev
     SQLALCHEMY_DATABASE_URI = 'sqlite:///dev.db'
 
 SQLALCHEMY_TRACK_MODIFICATIONS = False
