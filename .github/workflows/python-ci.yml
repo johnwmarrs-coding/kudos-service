@@ -43,4 +43,4 @@ jobs:
         with:
           name: Pytest Tests
           path: junit/test-results.xml
-          reporter: junit
+          reporter: java-junit
