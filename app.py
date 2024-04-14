@@ -2,9 +2,10 @@ from flask import Flask, request, jsonify, abort
 import os
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-import datetime
+from prometheus_flask_exporter import PrometheusMetrics
 
 app = Flask(__name__)
+metrics = PrometheusMetrics(app)
 
 if os.environ.get('ENV') == 'production':
     SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://username:password@hostname/database_name'
