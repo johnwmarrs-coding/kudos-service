@@ -31,7 +31,7 @@ jobs:
           pytest
 
       - name: Docker build
-        if: success()
+        if: github.ref == 'refs/heads/main' && success()
         run: |
           TIMESTAMP=$(date +%Y%m%d%H%M%S)
           docker build -t kudos-service:${TIMESTAMP} .
