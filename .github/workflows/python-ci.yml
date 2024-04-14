@@ -29,18 +29,3 @@ jobs:
       - name: Run tests
         run: |
           pytest --junitxml=junit/test-results.xml
-
-      - name: Upload test results
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: junit/test-results.xml # Change to the path where pytest generates its XML report
-        if: ${{ always() }}
-
-      - name: Test Report
-        uses: dorny/test-reporter@v1
-        if: success() || failure() # run this step even if previous step failed
-        with:
-          name: Pytest Tests
-          path: junit/test-results.xml
-          reporter: java-junit
