@@ -37,8 +37,6 @@ class Kudos(db.Model):
 
 class AppToken(db.Model):
     token = db.Column(db.String(255), primary_key=True)
-    created = db.Column(
-        db.DateTime, default=datetime.datetime.utcnow)
 
 
 def app_authorized(token):
