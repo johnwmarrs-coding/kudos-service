@@ -28,4 +28,10 @@ jobs:
 
       - name: Run tests
         run: |
-          pytest --junitxml=junit/test-results.xml
+          pytest
+
+      - name: Docker build
+        if: success()
+        run: |
+          TIMESTAMP=$(date +%Y%m%d%H%M%S)
+          docker build -t kudos-service:${TIMESTAMP} .
