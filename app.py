@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, abort
 import os
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+import datetime
 
 app = Flask(__name__)
 
@@ -18,6 +19,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = SQLALCHEMY_TRACK_MODIFICATIONS
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
+
 class Kudos(db.Model):
     path = db.Column(db.String(80), primary_key=True)
     kudos = db.Column(db.Integer, nullable=False, default=0)
@@ -31,11 +33,31 @@ class Kudos(db.Model):
             'title': self.title,
             'description': self.description
         }
-    
+
+
+class AppToken(db.Model):
+    token = db.Column(db.String(255), primary_key=True)
+    created = db.Column(
+        db.DateTime, default=datetime.datetime.utcnow)
+
+
+def app_authorized(token):
+
+    if (not token):
+        return False
+
+    existing_token = AppToken.query.filter_by(token=token).first()
+
+    if (not existing_token):
+        return False
+
+    return True
+
 
 @app.route("/")
 def index():
     return 'The kudos-service is running!'
+
 
 @app.route("/kudos", methods=["GET"])
 def overview():
@@ -53,6 +75,7 @@ def overview():
 
     return jsonify(kudos_list)
 
+
 @app.route("/kudos/<path:path>", methods=["POST", "GET", "PATCH", "DELETE"])
 def kudos(path):
     if request.method == 'GET':
@@ -68,10 +91,15 @@ def kudos(path):
     elif request.method == 'POST':
         # Create a new kudos with that path, require title and description
         # Ideally protected
+
         data = request.get_json()
+
+        if not app_authorized(data.get('token')):
+            return jsonify({'error': 'Unauthorized request, invalid app token'}), 401
+
         if 'title' not in data or 'description' not in data:
             return jsonify({'error': 'Title and description for the kudos entry is required'}), 400
-        
+
         existing_kudos = Kudos.query.filter_by(path=path).first()
 
         if existing_kudos:
@@ -93,7 +121,6 @@ def kudos(path):
 
     elif request.method == 'PATCH':
         # Update the count on a kudos
-        # Ideally protected
         existing_kudos = Kudos.query.filter_by(path=path).first()
 
         if (existing_kudos):
@@ -102,8 +129,13 @@ def kudos(path):
             return jsonify(existing_kudos.to_dict())
         else:
             abort(404)
-        
+
     elif request.method == 'DELETE':
+        data = request.get_json()
+
+        if not app_authorized(data.get('token')):
+            return jsonify({'error': 'Unauthorized request, invalid app token'}), 401
+
         kudos = Kudos.query.filter_by(path=path).first()
         if kudos:
             db.session.delete(kudos)
@@ -111,6 +143,6 @@ def kudos(path):
             return 'Kudos deleted successfully', 200
         else:
             abort(404)
-        
+
     else:
         return 'Unsupported request method for /kudos'
